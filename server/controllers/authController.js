@@ -19,7 +19,7 @@ const register = async (req, res) => {
             error: "" 
         });
     } catch (error) {
-        res.status(201).json({ 
+        res.status(500).json({ 
             success: false,
             message: "Something went wrong",
             error: error.message
@@ -31,21 +31,27 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
         const user = await User.findOne({ email });
-        if(!user) return res.status(400).json({ message: "Invalid credentials" });
+        if(!user) return res.status(400).json({ 
+            success: false,
+            message: "Invalid credentials" 
+        });
         const isMatch = await bcrypt.compare(password, user.password);
-        if(!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+        if(!isMatch) return res.status(400).json({ 
+            success: false,
+            message: "Invalid credentials" 
+        });
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        res.cookie("token", token, { httpOnly: true, secure: true }); 
         res.status(200).json({ 
             success: true,
             token: token,
-            message: "User logged in successfully",
-            error: "" 
+            user: { id: user._id, email: user.email },
+            message: "User logged in successfully"
         });
     } catch (error) {
-        res.status(200).json({ 
-            success: false,
-            message: "Something went wrong",
-            error: error.message
+        res.status(500).json({ 
+            ssuccess: false,
+            message: error.message || "Something went wrong"
         });
     }
 };

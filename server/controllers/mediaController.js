@@ -29,13 +29,17 @@ const uploadMedia = async (req, res) => {
 const getMedia = async (req, res) => {
   try {
     const { type, page = 1, limit = 10 } = req.query;
-    const query = { user: req.user.id };
+    console.log('User ID from token:', req.user);
+    console.log('Query params:', { type, page, limit });
+    const query = { user: req.user };
     if (type) query.type = type;
     const media = await Media.find(query)
       .skip((page - 1) * limit)
       .limit(limit);
+    console.log('Found media:', media);
     res.json(media);
   } catch (err) {
+    console.error('Get media error:', err);
     res.status(500).json({ error: err.message });
   }
 };
